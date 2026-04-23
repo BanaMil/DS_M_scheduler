@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>몽골 선교팀 일정 조율</title>
-<!--
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>몽골 선교팀 일정 조율</title>
+  <!--
   =============================================================
   Supabase 설정 안내
 
@@ -39,964 +40,1404 @@
   설정 없이 열면 localStorage 모드(이 기기에서만 사용)로 작동합니다.
   =============================================================
 -->
-<style>
-  :root {
-    --bg: #ffffff;
-    --ink: #1a1a1a;
-    --muted: #8a8a8a;
-    --line: #eaeaea;
-    --line-strong: #d4d4d4;
-    --hl: #fff27a;
-    --hl-strong: #ffe24a;
-    --key-bg: #fafafa;
-    --key-hover: #f2f2f2;
-    --sat: #2b6cb0;
-    --sun: #c53030;
-    --cell-h: 22px;
-  }
-  * { box-sizing: border-box; }
-  html, body {
-    margin: 0; padding: 0;
-    background: var(--bg); color: var(--ink);
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text",
-                 "Helvetica Neue", "Segoe UI", "Noto Sans KR", sans-serif;
-    -webkit-font-smoothing: antialiased;
-  }
+  <style>
+    :root {
+      --bg: #ffffff;
+      --ink: #1a1a1a;
+      --muted: #8a8a8a;
+      --line: #eaeaea;
+      --line-strong: #d4d4d4;
+      --hl: #fff27a;
+      --hl-strong: #ffe24a;
+      --key-bg: #fafafa;
+      --key-hover: #f2f2f2;
+      --sat: #2b6cb0;
+      --sun: #c53030;
+      --cell-h: 22px;
+    }
 
-  .app { max-width: 920px; margin: 0 auto; padding: 20px 16px 60px; }
-  .topbar { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 12px; }
-  .topbar h1 { margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
-  .topbar h1 .mark { background: linear-gradient(180deg, transparent 55%, var(--hl) 55%); padding: 0 4px; }
-  .topbar .status { font-size: 12px; color: var(--muted); }
+    * {
+      box-sizing: border-box;
+    }
 
-  .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 20px; }
-  .tab { background: none; border: none; padding: 10px 14px; font-size: 15px; font-weight: 500; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
-  .tab:hover { color: var(--ink); }
-  .tab.active { color: var(--ink); border-bottom-color: var(--ink); }
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text",
+        "Helvetica Neue", "Segoe UI", "Noto Sans KR", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
 
-  .pane { display: none; }
-  .pane.active { display: block; }
+    .app {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 20px 16px 60px;
+    }
 
-  .row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
-  .row label { font-size: 13px; color: var(--muted); }
-  .row input[type="text"], .row select, .row input[type="time"] {
-    font: inherit; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px;
-    background: #fff; color: var(--ink); min-width: 0;
-  }
-  .row input[type="text"] { min-width: 140px; }
-  .row input:focus, .row select:focus { outline: none; border-color: var(--line-strong); }
+    .topbar {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
 
-  .hint { font-size: 13px; color: var(--muted); margin: 6px 0 14px; line-height: 1.5; }
-  .save-status { font-size: 12px; color: var(--muted); }
-  .save-status.saving { color: #a67c00; }
-  .save-status.saved { color: #2b8f4e; }
-  .save-status.error { color: #c53030; }
+    .topbar h1 {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
 
-  /* Grid */
-  .grid-wrap { overflow: auto; border: 1px solid var(--line); border-radius: 10px; max-height: 70vh; background: #fff; }
-  .grid {
-    display: grid;
-    min-width: 420px;
-    user-select: none;
-    -webkit-user-select: none;
-  }
-  .corner { background: #fafafa; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); position: sticky; top: 0; left: 0; z-index: 3; }
-  .day-header {
-    background: #fafafa; padding: 8px 4px; text-align: center;
-    font-size: 13px; font-weight: 600;
-    border-bottom: 1px solid var(--line);
-    border-right: 1px solid var(--line);
-    position: sticky; top: 0; z-index: 2;
-  }
-  .day-header:last-child { border-right: none; }
-  .day-header.sat { color: var(--sat); }
-  .day-header.sun { color: var(--sun); }
+    .topbar h1 .mark {
+      background: linear-gradient(180deg, transparent 55%, var(--hl) 55%);
+      padding: 0 4px;
+    }
 
-  .time-label {
-    font-size: 11px; color: var(--muted);
-    padding: 0 6px 0 8px;
-    text-align: right;
-    border-right: 1px solid var(--line);
-    background: #fafafa;
-    height: var(--cell-h);
-    line-height: var(--cell-h);
-    position: sticky; left: 0; z-index: 1;
-    white-space: nowrap;
-  }
+    .topbar .status {
+      font-size: 12px;
+      color: var(--muted);
+    }
 
-  .cell {
-    height: var(--cell-h);
-    border-right: 1px solid var(--line);
-    border-bottom: 1px dashed #f0f0f0;
-    background: #fff;
-    position: relative;
-    touch-action: none;
-  }
-  .cell:last-child { border-right: none; }
-  .cell.hour-mark { border-bottom: 1px solid var(--line); }
-  .cell.sat { background: #f7fafd; }
-  .cell.sun { background: #fdf7f7; }
+    .tabs {
+      display: flex;
+      gap: 4px;
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 20px;
+    }
 
-  /* Editable highlight (mine) */
-  .grid.editable .cell { cursor: pointer; }
-  .grid.editable .cell:hover { outline: 1px solid var(--line-strong); outline-offset: -1px; }
-  .cell .fill {
-    position: absolute; left: 0; right: 0;
-    background: var(--hl);
-    pointer-events: none;
-  }
+    .tab {
+      background: none;
+      border: none;
+      padding: 10px 14px;
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+    }
 
-  /* Aggregate heat */
-  .cell .heat {
-    position: absolute; left: 0; right: 0; top: 0; bottom: 0;
-    background: #fff27a;
-    pointer-events: none;
-    opacity: 0;
-  }
-  .cell .count {
-    position: absolute; left: 0; right: 0; top: 50%;
-    transform: translateY(-50%);
-    text-align: center;
-    font-size: 10px;
-    font-weight: 600;
-    color: #444;
-    pointer-events: none;
-    opacity: 0;
-  }
-  .cell.show-count .count { opacity: 1; }
+    .tab:hover {
+      color: var(--ink);
+    }
 
-  /* Selected cell ring */
-  .cell.selected {
-    outline: 2px solid var(--ink);
-    outline-offset: -2px;
-    z-index: 1;
-  }
+    .tab.active {
+      color: var(--ink);
+      border-bottom-color: var(--ink);
+    }
 
-  /* Manual input */
-  .block { border: 1px solid var(--line); border-radius: 10px; padding: 14px; margin-top: 16px; background: #fff; }
-  .block h3 { margin: 0 0 10px; font-size: 14px; font-weight: 600; }
-  .manual-form { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-  .manual-form .sep { color: var(--muted); }
-  .btn {
-    font: inherit; padding: 8px 14px; border-radius: 8px;
-    border: 1px solid var(--line); background: var(--key-bg); color: var(--ink);
-    cursor: pointer; font-weight: 500;
-  }
-  .btn:hover { background: var(--key-hover); }
-  .btn.primary { background: var(--hl); border-color: var(--hl); font-weight: 600; }
-  .btn.primary:hover { background: var(--hl-strong); border-color: var(--hl-strong); }
-  .btn.small { padding: 4px 10px; font-size: 12px; }
-  .btn.ghost { background: transparent; color: var(--muted); }
-  .btn.ghost:hover { color: var(--ink); background: var(--key-hover); }
+    .pane {
+      display: none;
+    }
 
-  .intervals { list-style: none; margin: 12px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
-  .intervals li {
-    display: flex; align-items: center; justify-content: space-between;
-    font-size: 13px; padding: 6px 10px; background: #fafafa; border-radius: 6px;
-  }
-  .intervals .empty { color: var(--muted); font-style: italic; justify-content: center; }
+    .pane.active {
+      display: block;
+    }
 
-  /* View tab */
-  .view-top { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; }
-  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
-  .seg button { background: #fff; border: none; padding: 7px 12px; font: inherit; font-size: 13px; cursor: pointer; color: var(--muted); }
-  .seg button.active { background: var(--ink); color: #fff; }
-  .view-layout { display: grid; grid-template-columns: 1fr; gap: 16px; }
-  @media (min-width: 720px) { .view-layout { grid-template-columns: 1fr 220px; } }
-  .people-panel { border: 1px solid var(--line); border-radius: 10px; padding: 12px; background: #fff; }
-  .people-panel h3 { margin: 0 0 8px; font-size: 13px; font-weight: 600; color: var(--muted); }
-  .people-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
-  .people-list li { display: flex; justify-content: space-between; align-items: center; padding: 6px 8px; border-radius: 6px; font-size: 13px; cursor: pointer; }
-  .people-list li:hover { background: #fafafa; }
-  .people-list li.active { background: var(--hl); font-weight: 600; }
-  .people-list .p-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .people-list .count { color: var(--muted); font-size: 11px; font-weight: 400; margin: 0 4px; }
-  .people-list .del-person {
-    background: transparent; border: none; color: var(--muted);
-    cursor: pointer; font-size: 16px; line-height: 1;
-    padding: 2px 6px; border-radius: 4px;
-  }
-  .people-list .del-person:hover { color: var(--sun); background: #fdecea; }
-  .people-list li.active .del-person { color: #3a2a2a; }
-  .cell-info { margin-top: 14px; padding: 12px; border: 1px solid var(--line); border-radius: 10px; background: #fff; font-size: 13px; line-height: 1.6; }
-  .cell-info .title { font-weight: 600; margin-bottom: 6px; }
-  .cell-info .names { color: var(--ink); }
-  .cell-info .muted { color: var(--muted); }
-  .cell-info .absent { color: var(--muted); font-style: italic; }
+    .row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
 
-  .banner {
-    font-size: 12px; padding: 8px 12px; border-radius: 8px; margin-bottom: 14px;
-    background: #fffbe6; border: 1px solid #ffe580; color: #755c00;
-  }
-  .banner.ok { background: #e6f7ec; border-color: #a8dfbc; color: #1e6b38; }
-  .banner.err { background: #fdecea; border-color: #f5b5ae; color: #9b2c22; }
-</style>
+    .row label {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .row input[type="text"],
+    .row select,
+    .row input[type="time"] {
+      font: inherit;
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--ink);
+      min-width: 0;
+    }
+
+    .row input[type="text"] {
+      min-width: 140px;
+    }
+
+    .row input:focus,
+    .row select:focus {
+      outline: none;
+      border-color: var(--line-strong);
+    }
+
+    .hint {
+      font-size: 13px;
+      color: var(--muted);
+      margin: 6px 0 14px;
+      line-height: 1.5;
+    }
+
+    .save-status {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .save-status.saving {
+      color: #a67c00;
+    }
+
+    .save-status.saved {
+      color: #2b8f4e;
+    }
+
+    .save-status.error {
+      color: #c53030;
+    }
+
+    /* Grid */
+    .grid-wrap {
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      max-height: 70vh;
+      background: #fff;
+    }
+
+    .grid {
+      display: grid;
+      min-width: 420px;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .corner {
+      background: #fafafa;
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      position: sticky;
+      top: 0;
+      left: 0;
+      z-index: 3;
+    }
+
+    .day-header {
+      background: #fafafa;
+      padding: 8px 4px;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 600;
+      border-bottom: 1px solid var(--line);
+      border-right: 1px solid var(--line);
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+
+    .day-header:last-child {
+      border-right: none;
+    }
+
+    .day-header.sat {
+      color: var(--sat);
+    }
+
+    .day-header.sun {
+      color: var(--sun);
+    }
+
+    .time-label {
+      font-size: 11px;
+      color: var(--muted);
+      padding: 0 6px 0 8px;
+      text-align: right;
+      border-right: 1px solid var(--line);
+      background: #fafafa;
+      height: var(--cell-h);
+      line-height: var(--cell-h);
+      position: sticky;
+      left: 0;
+      z-index: 1;
+      white-space: nowrap;
+    }
+
+    .cell {
+      height: var(--cell-h);
+      border-right: 1px solid var(--line);
+      border-bottom: 1px dashed #f0f0f0;
+      background: #fff;
+      position: relative;
+      touch-action: none;
+    }
+
+    .cell:last-child {
+      border-right: none;
+    }
+
+    .cell.hour-mark {
+      border-bottom: 1px solid var(--line);
+    }
+
+    .cell.sat {
+      background: #f7fafd;
+    }
+
+    .cell.sun {
+      background: #fdf7f7;
+    }
+
+    /* Editable highlight (mine) */
+    .grid.editable .cell {
+      cursor: pointer;
+    }
+
+    .grid.editable .cell:hover {
+      outline: 1px solid var(--line-strong);
+      outline-offset: -1px;
+    }
+
+    .cell .fill {
+      position: absolute;
+      left: 0;
+      right: 0;
+      background: var(--hl);
+      pointer-events: none;
+    }
+
+    /* Aggregate heat */
+    .cell .heat {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      background: #fff27a;
+      pointer-events: none;
+      opacity: 0;
+    }
+
+    .cell .count {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      text-align: center;
+      font-size: 10px;
+      font-weight: 600;
+      color: #444;
+      pointer-events: none;
+      opacity: 0;
+    }
+
+    .cell.show-count .count {
+      opacity: 1;
+    }
+
+    /* Selected cell ring */
+    .cell.selected {
+      outline: 2px solid var(--ink);
+      outline-offset: -2px;
+      z-index: 1;
+    }
+
+    /* Manual input */
+    .block {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 14px;
+      margin-top: 16px;
+      background: #fff;
+    }
+
+    .block h3 {
+      margin: 0 0 10px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .manual-form {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .manual-form .sep {
+      color: var(--muted);
+    }
+
+    .btn {
+      font: inherit;
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: var(--key-bg);
+      color: var(--ink);
+      cursor: pointer;
+      font-weight: 500;
+    }
+
+    .btn:hover {
+      background: var(--key-hover);
+    }
+
+    .btn.primary {
+      background: var(--hl);
+      border-color: var(--hl);
+      font-weight: 600;
+    }
+
+    .btn.primary:hover {
+      background: var(--hl-strong);
+      border-color: var(--hl-strong);
+    }
+
+    .btn.small {
+      padding: 4px 10px;
+      font-size: 12px;
+    }
+
+    .btn.ghost {
+      background: transparent;
+      color: var(--muted);
+    }
+
+    .btn.ghost:hover {
+      color: var(--ink);
+      background: var(--key-hover);
+    }
+
+    .intervals {
+      list-style: none;
+      margin: 12px 0 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .intervals li {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+      padding: 6px 10px;
+      background: #fafafa;
+      border-radius: 6px;
+    }
+
+    .intervals .empty {
+      color: var(--muted);
+      font-style: italic;
+      justify-content: center;
+    }
+
+    /* View tab */
+    .view-top {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .seg {
+      display: inline-flex;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .seg button {
+      background: #fff;
+      border: none;
+      padding: 7px 12px;
+      font: inherit;
+      font-size: 13px;
+      cursor: pointer;
+      color: var(--muted);
+    }
+
+    .seg button.active {
+      background: var(--ink);
+      color: #fff;
+    }
+
+    .view-layout {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    @media (min-width: 720px) {
+      #pane-view.admin .view-layout {
+        grid-template-columns: 1fr 220px;
+      }
+    }
+
+    #pane-view.guest .seg button[data-mode="person"],
+    #pane-view.guest #view-person,
+    #pane-view.guest .people-panel {
+      display: none !important;
+    }
+
+    #admin-btn.on {
+      color: #2b8f4e;
+      border-color: #a8dfbc;
+      background: #eafaf0;
+    }
+
+    .people-panel {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 12px;
+      background: #fff;
+    }
+
+    .people-panel h3 {
+      margin: 0 0 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+    }
+
+    .people-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .people-list li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 8px;
+      border-radius: 6px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .people-list li:hover {
+      background: #fafafa;
+    }
+
+    .people-list li.active {
+      background: var(--hl);
+      font-weight: 600;
+    }
+
+    .people-list .p-name {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .people-list .count {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 400;
+      margin: 0 4px;
+    }
+
+    .people-list .del-person {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 16px;
+      line-height: 1;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .people-list .del-person:hover {
+      color: var(--sun);
+      background: #fdecea;
+    }
+
+    .people-list li.active .del-person {
+      color: #3a2a2a;
+    }
+
+    .cell-info {
+      margin-top: 14px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .cell-info .title {
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .cell-info .names {
+      color: var(--ink);
+    }
+
+    .cell-info .muted {
+      color: var(--muted);
+    }
+
+    .cell-info .absent {
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    .banner {
+      font-size: 12px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      margin-bottom: 14px;
+      background: #fffbe6;
+      border: 1px solid #ffe580;
+      color: #755c00;
+    }
+
+    .banner.ok {
+      background: #e6f7ec;
+      border-color: #a8dfbc;
+      color: #1e6b38;
+    }
+
+    .banner.err {
+      background: #fdecea;
+      border-color: #f5b5ae;
+      color: #9b2c22;
+    }
+  </style>
 </head>
+
 <body>
-<div class="app">
-  <header class="topbar">
-    <h1>몽골 선교팀 <span class="mark">일정 조율</span></h1>
-    <div class="status" id="conn-status">연결 확인 중…</div>
-  </header>
+  <div class="app">
+    <header class="topbar">
+      <h1>몽골 선교팀 <span class="mark">일정 조율</span></h1>
+      <div class="status" id="conn-status">연결 확인 중…</div>
+    </header>
 
-  <nav class="tabs">
-    <button class="tab active" data-tab="edit">내 일정</button>
-    <button class="tab" data-tab="view">전체 확인</button>
-  </nav>
+    <nav class="tabs">
+      <button class="tab active" data-tab="edit">내 일정</button>
+      <button class="tab" data-tab="view">전체 확인</button>
+    </nav>
 
-  <!-- EDIT TAB -->
-  <section id="pane-edit" class="pane active">
-    <div class="row">
-      <label>이름
-        <input id="name-input" type="text" placeholder="이름을 입력하세요" autocomplete="off" />
-      </label>
-      <span class="save-status" id="save-status"></span>
-    </div>
-    <p class="hint">
-      셀을 클릭하거나 드래그해서 가능한 시간을 칠하고, 칠해진 셀을 다시 드래그하면 지워집니다.<br/>
-      30분 단위가 아닌 시간(예: 14:15~15:10)은 아래 <b>직접 입력</b>으로 추가하세요.
-    </p>
-    <div id="edit-grid-wrap" class="grid-wrap"></div>
-
-    <div class="block">
-      <h3>직접 입력 (정확한 시간)</h3>
-      <div class="manual-form">
-        <select id="m-day"></select>
-        <input type="time" id="m-start" value="09:00" />
-        <span class="sep">~</span>
-        <input type="time" id="m-end" value="10:00" />
-        <button class="btn primary" id="m-add">추가</button>
-        <button class="btn ghost" id="m-clear">모두 지우기</button>
+    <!-- EDIT TAB -->
+    <section id="pane-edit" class="pane active">
+      <div class="row">
+        <label>이름
+          <input id="name-input" type="text" placeholder="이름을 입력하세요" autocomplete="off" />
+        </label>
+        <span class="save-status" id="save-status"></span>
       </div>
-      <ul class="intervals" id="intervals-list"></ul>
-    </div>
+      <p class="hint">
+        셀을 클릭하거나 드래그해서 가능한 시간을 칠하고, 칠해진 셀을 다시 드래그하면 지워집니다.<br />
+        30분 단위가 아닌 시간(예: 14:15~15:10)은 아래 <b>직접 입력</b>으로 추가하세요.
+      </p>
+      <div id="edit-grid-wrap" class="grid-wrap"></div>
 
-    <div class="banner" id="edit-banner" style="display:none"></div>
-  </section>
-
-  <!-- VIEW TAB -->
-  <section id="pane-view" class="pane">
-    <div class="view-top">
-      <div class="seg" id="view-mode">
-        <button class="active" data-mode="all">전체 합산</button>
-        <button data-mode="person">개인별</button>
+      <div class="block">
+        <h3>직접 입력 (정확한 시간)</h3>
+        <div class="manual-form">
+          <select id="m-day"></select>
+          <input type="time" id="m-start" value="09:00" />
+          <span class="sep">~</span>
+          <input type="time" id="m-end" value="10:00" />
+          <button class="btn primary" id="m-add">추가</button>
+          <button class="btn ghost" id="m-clear">모두 지우기</button>
+        </div>
+        <ul class="intervals" id="intervals-list"></ul>
       </div>
-      <select id="view-person" style="display:none"></select>
-      <span class="status" id="view-meta"></span>
-    </div>
-    <div class="view-layout">
-      <div id="view-grid-wrap" class="grid-wrap"></div>
-      <aside class="people-panel">
-        <h3>등록된 사람</h3>
-        <ul class="people-list" id="people-list"></ul>
-      </aside>
-    </div>
-    <div id="cell-info" class="cell-info">
-      <div class="muted">셀을 클릭하면 그 시간에 가능한 사람을 보여줍니다.</div>
-    </div>
-  </section>
-</div>
 
-<script type="module">
-// ============================================================
-// CONFIG — Supabase 설정을 여기에 넣으세요 (미설정시 localStorage 모드)
-// ============================================================
-const SUPABASE_URL = 'https://cxvgesusjnelpjkpcihe.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN4dmdlc3Vzam5lbHBqa3BjaWhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5MDkyNjAsImV4cCI6MjA5MjQ4NTI2MH0.y_HWvUO3qD90LImE-B-dQ1nQ82EqkhhnPANTibRfGRY';
+      <div class="banner" id="edit-banner" style="display:none"></div>
+    </section>
 
-const CFG = {
-  startHour: 9,
-  endHour: 24,            // exclusive
-  slotMin: 30,
-  days: ['일','월','화','수','목','금','토'],
-};
-const SLOTS_PER_HOUR = 60 / CFG.slotMin;
-const ROWS = (CFG.endHour - CFG.startHour) * SLOTS_PER_HOUR;
+    <!-- VIEW TAB -->
+    <section id="pane-view" class="pane">
+      <div class="view-top">
+        <div class="seg" id="view-mode">
+          <button class="active" data-mode="all">전체 합산</button>
+          <button data-mode="person">개인별</button>
+        </div>
+        <select id="view-person" style="display:none"></select>
+        <span class="status" id="view-meta"></span>
+        <button class="btn small ghost" id="admin-btn" style="margin-left:auto">관리자 로그인</button>
+      </div>
+      <div class="view-layout">
+        <div id="view-grid-wrap" class="grid-wrap"></div>
+        <aside class="people-panel">
+          <h3>등록된 사람</h3>
+          <ul class="people-list" id="people-list"></ul>
+        </aside>
+      </div>
+      <div id="cell-info" class="cell-info">
+        <div class="muted">셀을 클릭하면 그 시간에 가능한 사람을 보여줍니다.</div>
+      </div>
+    </section>
+  </div>
 
-// ============================================================
-// State
-// ============================================================
-const state = {
-  myName: localStorage.getItem('schedule:myName') || '',
-  myIntervals: [],
-  allUsers: [],      // [{ name, intervals, updated_at }]
-  mode: 'all',       // 'all' | 'person'
-  personSel: '',
-  selected: null,    // { d, s } — slot index of selected cell (view tab)
-};
+  <script type="module">
+    // ============================================================
+    // CONFIG — Supabase 설정을 여기에 넣으세요 (미설정시 localStorage 모드)
+    // ============================================================
+    const SUPABASE_URL = 'https://cxvgesusjnelpjkpcihe.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN4dmdlc3Vzam5lbHBqa3BjaWhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5MDkyNjAsImV4cCI6MjA5MjQ4NTI2MH0.y_HWvUO3qD90LImE-B-dQ1nQ82EqkhhnPANTibRfGRY';
 
-// ============================================================
-// Supabase backend (with localStorage fallback)
-// ============================================================
-let sb = null;
-let useSupabase = false;
-if (SUPABASE_URL && SUPABASE_ANON_KEY) {
-  try {
-    const mod = await import('https://esm.sh/@supabase/supabase-js@2');
-    sb = mod.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    useSupabase = true;
-  } catch (e) {
-    console.error('Supabase 초기화 실패', e);
-  }
-}
+    // 관리자 비밀번호 — 아래 문자열을 본인만 아는 값으로 바꾸세요.
+    // (클라이언트 소스에 포함되므로 "부드러운" 보호입니다. 기술적으로 능숙한
+    //  사용자는 브라우저 개발자 도구로 확인 가능합니다.)
+    const ADMIN_PASSWORD = 'gksduddns1017*!%';
 
-function setConn(msg, cls = '') {
-  const el = document.getElementById('conn-status');
-  el.textContent = msg;
-  el.className = 'status ' + cls;
-}
+    const CFG = {
+      startHour: 9,
+      endHour: 24,            // exclusive
+      slotMin: 30,
+      days: ['일', '월', '화', '수', '목', '금', '토'],
+    };
+    const SLOTS_PER_HOUR = 60 / CFG.slotMin;
+    const ROWS = (CFG.endHour - CFG.startHour) * SLOTS_PER_HOUR;
 
-async function loadAll() {
-  if (useSupabase) {
-    const { data, error } = await sb.from('schedules')
-      .select('name, intervals, updated_at')
-      .order('name');
-    if (error) throw error;
-    state.allUsers = (data || []).map(r => ({
-      name: r.name,
-      intervals: Array.isArray(r.intervals) ? r.intervals : [],
-      updated_at: r.updated_at,
-    }));
-  } else {
-    const raw = localStorage.getItem('schedule:allUsers');
-    state.allUsers = raw ? JSON.parse(raw) : [];
-  }
-  if (state.myName) {
-    const me = state.allUsers.find(u => u.name === state.myName);
-    state.myIntervals = me ? me.intervals : [];
-  }
-}
+    // ============================================================
+    // State
+    // ============================================================
+    const state = {
+      myName: localStorage.getItem('schedule:myName') || '',
+      myIntervals: [],
+      allUsers: [],      // [{ name, intervals, updated_at }]
+      mode: 'all',       // 'all' | 'person'
+      personSel: '',
+      selected: null,    // { d, s } — slot index of selected cell (view tab)
+      admin: sessionStorage.getItem('schedule:admin') === 'yes',
+    };
 
-async function saveMine() {
-  if (!state.myName) return;
-  const payload = {
-    name: state.myName,
-    intervals: state.myIntervals,
-    updated_at: new Date().toISOString(),
-  };
-  if (useSupabase) {
-    const { error } = await sb.from('schedules')
-      .upsert(payload, { onConflict: 'name' });
-    if (error) throw error;
-  } else {
-    const idx = state.allUsers.findIndex(u => u.name === state.myName);
-    if (idx >= 0) state.allUsers[idx] = payload;
-    else state.allUsers.push(payload);
-    localStorage.setItem('schedule:allUsers', JSON.stringify(state.allUsers));
-  }
-}
-
-async function deleteUser(name) {
-  if (useSupabase) {
-    const { error } = await sb.from('schedules').delete().eq('name', name);
-    if (error) throw error;
-  } else {
-    state.allUsers = state.allUsers.filter(u => u.name !== name);
-    localStorage.setItem('schedule:allUsers', JSON.stringify(state.allUsers));
-  }
-}
-
-async function switchPerson(name) {
-  state.myName = name;
-  localStorage.setItem('schedule:myName', name);
-  if (!name) { state.myIntervals = []; return; }
-  if (useSupabase) {
-    const { data, error } = await sb.from('schedules')
-      .select('intervals').eq('name', name).maybeSingle();
-    if (error) throw error;
-    state.myIntervals = data?.intervals || [];
-  } else {
-    const me = state.allUsers.find(u => u.name === name);
-    state.myIntervals = me ? [...me.intervals] : [];
-  }
-}
-
-function subscribeRealtime() {
-  if (!useSupabase) return;
-  sb.channel('schedules-changes')
-    .on('postgres_changes',
-        { event: '*', schema: 'public', table: 'schedules' },
-        async () => {
-          await loadAll();
-          renderAll();
-        })
-    .subscribe();
-}
-
-// ============================================================
-// Interval utils
-// ============================================================
-function normalize(ivs) {
-  const byDay = {};
-  for (const i of ivs) {
-    if (i.s >= i.e) continue;
-    (byDay[i.d] ||= []).push({ s: i.s, e: i.e });
-  }
-  const out = [];
-  for (const d of Object.keys(byDay).map(Number)) {
-    byDay[d].sort((a, b) => a.s - b.s);
-    const merged = [];
-    for (const iv of byDay[d]) {
-      if (merged.length && iv.s <= merged[merged.length - 1].e) {
-        merged[merged.length - 1].e = Math.max(merged[merged.length - 1].e, iv.e);
-      } else {
-        merged.push({ ...iv });
-      }
-    }
-    for (const m of merged) out.push({ d, s: m.s, e: m.e });
-  }
-  out.sort((a, b) => a.d - b.d || a.s - b.s);
-  return out;
-}
-function addRange(ivs, d, s, e) {
-  if (s >= e) return ivs;
-  return normalize([...ivs, { d, s, e }]);
-}
-function removeRange(ivs, d, s, e) {
-  if (s >= e) return ivs;
-  const out = [];
-  for (const i of ivs) {
-    if (i.d !== d || i.e <= s || i.s >= e) { out.push(i); continue; }
-    if (i.s < s) out.push({ d, s: i.s, e: s });
-    if (i.e > e) out.push({ d, s: e, e: i.e });
-  }
-  return out;
-}
-function intervalOverSlot(iv, d, s, e) {
-  return iv.d === d && iv.s < e && iv.e > s;
-}
-function cellFullyCovered(ivs, d, s, e) {
-  return ivs.some(i => i.d === d && i.s <= s && i.e >= e);
-}
-function cellOverlaps(ivs, d, s, e) {
-  return ivs.some(i => intervalOverSlot(i, d, s, e));
-}
-function cellFraction(ivs, d, slotStart, slotEnd) {
-  // Returns {start: 0..1, end: 0..1} portion of cell covered (single segment since normalized).
-  for (const i of ivs) {
-    if (!intervalOverSlot(i, d, slotStart, slotEnd)) continue;
-    const a = Math.max(i.s, slotStart);
-    const b = Math.min(i.e, slotEnd);
-    const width = slotEnd - slotStart;
-    return { start: (a - slotStart) / width, end: (b - slotStart) / width };
-  }
-  return null;
-}
-function fmt(min) {
-  const h = Math.floor(min / 60), m = min % 60;
-  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
-}
-function parseT(s) {
-  const [h, m] = s.split(':').map(Number);
-  return h * 60 + m;
-}
-function slotBounds(idx) {
-  const s = CFG.startHour * 60 + idx * CFG.slotMin;
-  return { s, e: s + CFG.slotMin };
-}
-
-// ============================================================
-// Grid building
-// ============================================================
-function buildGrid(wrapId, editable) {
-  const wrap = document.getElementById(wrapId);
-  wrap.innerHTML = '';
-  const grid = document.createElement('div');
-  grid.className = 'grid' + (editable ? ' editable' : '');
-  grid.style.gridTemplateColumns = `56px repeat(${CFG.days.length}, minmax(42px, 1fr))`;
-
-  const corner = document.createElement('div');
-  corner.className = 'corner';
-  grid.appendChild(corner);
-  CFG.days.forEach((d, i) => {
-    const h = document.createElement('div');
-    h.className = 'day-header';
-    if (i === 0) h.classList.add('sun');
-    if (i === 6) h.classList.add('sat');
-    h.textContent = d;
-    grid.appendChild(h);
-  });
-
-  for (let s = 0; s < ROWS; s++) {
-    const absMin = CFG.startHour * 60 + s * CFG.slotMin;
-    const label = document.createElement('div');
-    label.className = 'time-label';
-    if (absMin % 60 === 0) label.textContent = fmt(absMin);
-    grid.appendChild(label);
-    for (let d = 0; d < CFG.days.length; d++) {
-      const cell = document.createElement('div');
-      cell.className = 'cell';
-      cell.dataset.d = d;
-      cell.dataset.s = s;
-      if (s % SLOTS_PER_HOUR === SLOTS_PER_HOUR - 1) cell.classList.add('hour-mark');
-      if (d === 0) cell.classList.add('sun');
-      if (d === 6) cell.classList.add('sat');
-      const heat = document.createElement('div'); heat.className = 'heat'; cell.appendChild(heat);
-      const fill = document.createElement('div'); fill.className = 'fill'; cell.appendChild(fill);
-      const cnt  = document.createElement('div'); cnt.className  = 'count'; cell.appendChild(cnt);
-      grid.appendChild(cell);
-    }
-  }
-  wrap.appendChild(grid);
-  return grid;
-}
-
-function paintCellFillFromIntervals(cell, intervals) {
-  const d = +cell.dataset.d, s = +cell.dataset.s;
-  const { s: ss, e: ee } = slotBounds(s);
-  const frac = cellFraction(intervals, d, ss, ee);
-  const fill = cell.querySelector('.fill');
-  if (!frac) {
-    fill.style.display = 'none';
-  } else {
-    fill.style.display = 'block';
-    fill.style.top = (frac.start * 100) + '%';
-    fill.style.bottom = ((1 - frac.end) * 100) + '%';
-  }
-}
-
-// ============================================================
-// Edit grid rendering + interaction
-// ============================================================
-let editGrid = null;
-function renderEditGrid() {
-  if (!editGrid) editGrid = buildGrid('edit-grid-wrap', true);
-  editGrid.querySelectorAll('.cell').forEach(cell => {
-    paintCellFillFromIntervals(cell, state.myIntervals);
-  });
-}
-
-let drag = null; // { originalIntervals, intent, d0, s0, d, s, moved }
-
-function rectBounds(d0, s0, d1, s1) {
-  const dMin = Math.min(d0, d1), dMax = Math.max(d0, d1);
-  const sMin = Math.min(s0, s1), sMax = Math.max(s0, s1);
-  return { dMin, dMax, sMin, sMax };
-}
-
-function applyRectPreview() {
-  let ivs = drag.originalIntervals;
-  const { dMin, dMax, sMin, sMax } = rectBounds(drag.d0, drag.s0, drag.d, drag.s);
-  const rStart = CFG.startHour * 60 + sMin * CFG.slotMin;
-  const rEnd   = CFG.startHour * 60 + (sMax + 1) * CFG.slotMin;
-  for (let d = dMin; d <= dMax; d++) {
-    ivs = drag.intent === 'add'
-      ? addRange(ivs, d, rStart, rEnd)
-      : removeRange(ivs, d, rStart, rEnd);
-  }
-  state.myIntervals = ivs;
-  renderEditGrid();
-}
-
-function onCellPointerDown(e) {
-  const cell = e.target.closest('.cell');
-  if (!cell || !editGrid.contains(cell)) return;
-  if (!state.myName) {
-    flashBanner('이름을 먼저 입력해주세요.');
-    document.getElementById('name-input').focus();
-    return;
-  }
-  e.preventDefault();
-  cell.setPointerCapture(e.pointerId);
-  const d = +cell.dataset.d, s = +cell.dataset.s;
-  const { s: ss, e: ee } = slotBounds(s);
-  const covered = cellOverlaps(state.myIntervals, d, ss, ee);
-  drag = {
-    originalIntervals: state.myIntervals,
-    intent: covered ? 'remove' : 'add',
-    d0: d, s0: s, d, s,
-    moved: false,
-    pointerId: e.pointerId,
-  };
-  applyRectPreview();
-}
-function onCellPointerMove(e) {
-  if (!drag) return;
-  const cell = document.elementFromPoint(e.clientX, e.clientY)?.closest('.cell');
-  if (!cell || !editGrid.contains(cell)) return;
-  const d = +cell.dataset.d, s = +cell.dataset.s;
-  if (d === drag.d && s === drag.s) return;
-  drag.d = d; drag.s = s;
-  drag.moved = true;
-  applyRectPreview();
-}
-async function onCellPointerUp() {
-  if (!drag) return;
-  drag = null;
-  await persist();
-  renderViewTab(); // aggregate includes me now
-}
-
-function attachEditGridEvents() {
-  editGrid.addEventListener('pointerdown', onCellPointerDown);
-  editGrid.addEventListener('pointermove', onCellPointerMove);
-  editGrid.addEventListener('pointerup', onCellPointerUp);
-  editGrid.addEventListener('pointercancel', onCellPointerUp);
-}
-
-// ============================================================
-// Manual input + interval list
-// ============================================================
-function renderIntervalsList() {
-  const ul = document.getElementById('intervals-list');
-  ul.innerHTML = '';
-  if (!state.myIntervals.length) {
-    const li = document.createElement('li');
-    li.className = 'empty';
-    li.textContent = '등록된 시간이 없습니다.';
-    ul.appendChild(li);
-    return;
-  }
-  for (const iv of state.myIntervals) {
-    const li = document.createElement('li');
-    const txt = document.createElement('span');
-    txt.textContent = `${CFG.days[iv.d]}  ${fmt(iv.s)} ~ ${fmt(iv.e)}`;
-    const btn = document.createElement('button');
-    btn.className = 'btn small ghost';
-    btn.textContent = '삭제';
-    btn.addEventListener('click', async () => {
-      state.myIntervals = removeRange(state.myIntervals, iv.d, iv.s, iv.e);
-      renderEditGrid();
-      renderIntervalsList();
-      await persist();
-      renderViewTab();
-    });
-    li.appendChild(txt); li.appendChild(btn);
-    ul.appendChild(li);
-  }
-}
-
-function setupManualInput() {
-  const daySel = document.getElementById('m-day');
-  CFG.days.forEach((d, i) => {
-    const o = document.createElement('option');
-    o.value = i; o.textContent = d + '요일';
-    daySel.appendChild(o);
-  });
-  document.getElementById('m-add').addEventListener('click', async () => {
-    if (!state.myName) {
-      flashBanner('이름을 먼저 입력해주세요.');
-      document.getElementById('name-input').focus();
-      return;
-    }
-    const d = +daySel.value;
-    const s = parseT(document.getElementById('m-start').value);
-    const e = parseT(document.getElementById('m-end').value);
-    if (isNaN(s) || isNaN(e) || s >= e) {
-      flashBanner('시작 시간이 종료 시간보다 빨라야 합니다.');
-      return;
-    }
-    state.myIntervals = addRange(state.myIntervals, d, s, e);
-    renderEditGrid();
-    renderIntervalsList();
-    await persist();
-    renderViewTab();
-  });
-  document.getElementById('m-clear').addEventListener('click', async () => {
-    if (!state.myIntervals.length) return;
-    if (!confirm('내 일정을 모두 지울까요?')) return;
-    state.myIntervals = [];
-    renderEditGrid();
-    renderIntervalsList();
-    await persist();
-    renderViewTab();
-  });
-}
-
-// ============================================================
-// Name input + save status
-// ============================================================
-let saveTimer = null;
-let saveInFlight = false;
-function setSaveStatus(msg, cls = '') {
-  const el = document.getElementById('save-status');
-  el.textContent = msg;
-  el.className = 'save-status ' + cls;
-}
-async function persist() {
-  if (!state.myName) return;
-  clearTimeout(saveTimer);
-  setSaveStatus('저장 중…', 'saving');
-  try {
-    await saveMine();
-    setSaveStatus('저장됨 ' + new Date().toLocaleTimeString('ko-KR'), 'saved');
-  } catch (e) {
-    console.error(e);
-    setSaveStatus('저장 실패: ' + (e.message || e), 'error');
-  }
-}
-
-function setupNameInput() {
-  const input = document.getElementById('name-input');
-  input.value = state.myName;
-  let lastName = state.myName;
-  input.addEventListener('change', async () => {
-    const name = input.value.trim();
-    if (name === lastName) return;
-    lastName = name;
-    try {
-      await switchPerson(name);
-      renderEditGrid();
-      renderIntervalsList();
-      setSaveStatus(name ? '불러옴' : '');
-      // If name is brand new (not in allUsers), its row is created lazily on first edit.
-    } catch (e) {
-      console.error(e);
-      setSaveStatus('불러오기 실패: ' + (e.message || e), 'error');
-    }
-  });
-}
-
-function flashBanner(msg) {
-  const b = document.getElementById('edit-banner');
-  b.style.display = 'block';
-  b.className = 'banner';
-  b.textContent = msg;
-  clearTimeout(flashBanner._t);
-  flashBanner._t = setTimeout(() => { b.style.display = 'none'; }, 2500);
-}
-
-// ============================================================
-// View tab rendering
-// ============================================================
-let viewGrid = null;
-function peopleInCell(d, s) {
-  const { s: ss, e: ee } = slotBounds(s);
-  return state.allUsers.filter(u => u.intervals.some(i => intervalOverSlot(i, d, ss, ee)));
-}
-function renderViewGrid() {
-  if (!viewGrid) {
-    viewGrid = buildGrid('view-grid-wrap', false);
-    viewGrid.addEventListener('click', onViewCellClick);
-  }
-  const total = state.allUsers.length;
-  const mode = state.mode;
-  const person = mode === 'person' ? state.allUsers.find(u => u.name === state.personSel) : null;
-  viewGrid.querySelectorAll('.cell').forEach(cell => {
-    const d = +cell.dataset.d, s = +cell.dataset.s;
-    const { s: ss, e: ee } = slotBounds(s);
-    const fill = cell.querySelector('.fill');
-    const heat = cell.querySelector('.heat');
-    const cnt = cell.querySelector('.count');
-
-    fill.style.display = 'none';
-    heat.style.opacity = '0';
-    cnt.textContent = '';
-    cell.classList.remove('show-count');
-
-    if (mode === 'all') {
-      const list = peopleInCell(d, s);
-      const n = list.length;
-      if (n > 0 && total > 0) {
-        heat.style.opacity = (0.15 + 0.65 * (n / total)).toFixed(3);
-        if (n >= 2) { cnt.textContent = n; cell.classList.add('show-count'); }
-      }
-    } else if (person) {
-      paintCellFillFromIntervals(cell, person.intervals);
-    }
-
-    const sel = state.selected;
-    cell.classList.toggle('selected', !!sel && sel.d === d && sel.s === s);
-  });
-}
-function onViewCellClick(e) {
-  const cell = e.target.closest('.cell');
-  if (!cell) return;
-  const d = +cell.dataset.d, s = +cell.dataset.s;
-  state.selected = { d, s };
-  renderViewGrid();
-  renderCellInfo();
-}
-function renderCellInfo() {
-  const box = document.getElementById('cell-info');
-  if (!state.selected) {
-    box.innerHTML = '<div class="muted">셀을 클릭하면 그 시간에 가능한 사람을 보여줍니다.</div>';
-    return;
-  }
-  const { d, s } = state.selected;
-  const { s: ss, e: ee } = slotBounds(s);
-  const available = peopleInCell(d, s);
-  const unavailable = state.allUsers.filter(u => !available.includes(u));
-  const headline = `${CFG.days[d]}요일 ${fmt(ss)} ~ ${fmt(ee)}`;
-  let html = `<div class="title">${headline}</div>`;
-  if (available.length) {
-    html += `<div><b>가능 (${available.length}명):</b> <span class="names">${available.map(u => escapeHtml(u.name)).join(', ')}</span></div>`;
-  } else {
-    html += `<div class="absent">이 시간에 가능한 사람이 없습니다.</div>`;
-  }
-  if (unavailable.length) {
-    html += `<div class="muted" style="margin-top:4px">불가: ${unavailable.map(u => escapeHtml(u.name)).join(', ')}</div>`;
-  }
-  box.innerHTML = html;
-}
-function escapeHtml(s) {
-  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
-
-function renderPeopleList() {
-  const ul = document.getElementById('people-list');
-  ul.innerHTML = '';
-  if (!state.allUsers.length) {
-    const li = document.createElement('li');
-    li.className = 'muted';
-    li.textContent = '아직 없음';
-    ul.appendChild(li);
-    return;
-  }
-  for (const u of state.allUsers) {
-    const li = document.createElement('li');
-    const hours = u.intervals.reduce((acc, i) => acc + (i.e - i.s), 0) / 60;
-
-    const nameSpan = document.createElement('span');
-    nameSpan.className = 'p-name';
-    nameSpan.textContent = u.name;
-    const hoursSpan = document.createElement('span');
-    hoursSpan.className = 'count';
-    hoursSpan.textContent = `${hours.toFixed(1)}h`;
-    const delBtn = document.createElement('button');
-    delBtn.className = 'del-person';
-    delBtn.textContent = '×';
-    delBtn.title = `${u.name} 삭제`;
-    delBtn.addEventListener('click', async (e) => {
-      e.stopPropagation();
-      if (!confirm(`"${u.name}" 의 등록 정보를 삭제할까요? 되돌릴 수 없습니다.`)) return;
+    // ============================================================
+    // Supabase backend (with localStorage fallback)
+    // ============================================================
+    let sb = null;
+    let useSupabase = false;
+    if (SUPABASE_URL && SUPABASE_ANON_KEY) {
       try {
-        await deleteUser(u.name);
-        if (state.myName === u.name) {
-          state.myName = '';
-          state.myIntervals = [];
-          localStorage.removeItem('schedule:myName');
-          const input = document.getElementById('name-input');
-          if (input) input.value = '';
+        const mod = await import('https://esm.sh/@supabase/supabase-js@2');
+        sb = mod.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        useSupabase = true;
+      } catch (e) {
+        console.error('Supabase 초기화 실패', e);
+      }
+    }
+
+    function setConn(msg, cls = '') {
+      const el = document.getElementById('conn-status');
+      el.textContent = msg;
+      el.className = 'status ' + cls;
+    }
+
+    async function loadAll() {
+      if (useSupabase) {
+        const { data, error } = await sb.from('schedules')
+          .select('name, intervals, updated_at')
+          .order('name');
+        if (error) throw error;
+        state.allUsers = (data || []).map(r => ({
+          name: r.name,
+          intervals: Array.isArray(r.intervals) ? r.intervals : [],
+          updated_at: r.updated_at,
+        }));
+      } else {
+        const raw = localStorage.getItem('schedule:allUsers');
+        state.allUsers = raw ? JSON.parse(raw) : [];
+      }
+      if (state.myName) {
+        const me = state.allUsers.find(u => u.name === state.myName);
+        state.myIntervals = me ? me.intervals : [];
+      }
+    }
+
+    async function saveMine() {
+      if (!state.myName) return;
+      const payload = {
+        name: state.myName,
+        intervals: state.myIntervals,
+        updated_at: new Date().toISOString(),
+      };
+      if (useSupabase) {
+        const { error } = await sb.from('schedules')
+          .upsert(payload, { onConflict: 'name' });
+        if (error) throw error;
+      } else {
+        const idx = state.allUsers.findIndex(u => u.name === state.myName);
+        if (idx >= 0) state.allUsers[idx] = payload;
+        else state.allUsers.push(payload);
+        localStorage.setItem('schedule:allUsers', JSON.stringify(state.allUsers));
+      }
+    }
+
+    async function deleteUser(name) {
+      if (useSupabase) {
+        const { error } = await sb.from('schedules').delete().eq('name', name);
+        if (error) throw error;
+      } else {
+        state.allUsers = state.allUsers.filter(u => u.name !== name);
+        localStorage.setItem('schedule:allUsers', JSON.stringify(state.allUsers));
+      }
+    }
+
+    async function switchPerson(name) {
+      state.myName = name;
+      localStorage.setItem('schedule:myName', name);
+      if (!name) { state.myIntervals = []; return; }
+      if (useSupabase) {
+        const { data, error } = await sb.from('schedules')
+          .select('intervals').eq('name', name).maybeSingle();
+        if (error) throw error;
+        state.myIntervals = data?.intervals || [];
+      } else {
+        const me = state.allUsers.find(u => u.name === name);
+        state.myIntervals = me ? [...me.intervals] : [];
+      }
+    }
+
+    function subscribeRealtime() {
+      if (!useSupabase) return;
+      sb.channel('schedules-changes')
+        .on('postgres_changes',
+          { event: '*', schema: 'public', table: 'schedules' },
+          async () => {
+            await loadAll();
+            renderAll();
+          })
+        .subscribe();
+    }
+
+    // ============================================================
+    // Interval utils
+    // ============================================================
+    function normalize(ivs) {
+      const byDay = {};
+      for (const i of ivs) {
+        if (i.s >= i.e) continue;
+        (byDay[i.d] ||= []).push({ s: i.s, e: i.e });
+      }
+      const out = [];
+      for (const d of Object.keys(byDay).map(Number)) {
+        byDay[d].sort((a, b) => a.s - b.s);
+        const merged = [];
+        for (const iv of byDay[d]) {
+          if (merged.length && iv.s <= merged[merged.length - 1].e) {
+            merged[merged.length - 1].e = Math.max(merged[merged.length - 1].e, iv.e);
+          } else {
+            merged.push({ ...iv });
+          }
+        }
+        for (const m of merged) out.push({ d, s: m.s, e: m.e });
+      }
+      out.sort((a, b) => a.d - b.d || a.s - b.s);
+      return out;
+    }
+    function addRange(ivs, d, s, e) {
+      if (s >= e) return ivs;
+      return normalize([...ivs, { d, s, e }]);
+    }
+    function removeRange(ivs, d, s, e) {
+      if (s >= e) return ivs;
+      const out = [];
+      for (const i of ivs) {
+        if (i.d !== d || i.e <= s || i.s >= e) { out.push(i); continue; }
+        if (i.s < s) out.push({ d, s: i.s, e: s });
+        if (i.e > e) out.push({ d, s: e, e: i.e });
+      }
+      return out;
+    }
+    function intervalOverSlot(iv, d, s, e) {
+      return iv.d === d && iv.s < e && iv.e > s;
+    }
+    function cellFullyCovered(ivs, d, s, e) {
+      return ivs.some(i => i.d === d && i.s <= s && i.e >= e);
+    }
+    function cellOverlaps(ivs, d, s, e) {
+      return ivs.some(i => intervalOverSlot(i, d, s, e));
+    }
+    function cellFraction(ivs, d, slotStart, slotEnd) {
+      // Returns {start: 0..1, end: 0..1} portion of cell covered (single segment since normalized).
+      for (const i of ivs) {
+        if (!intervalOverSlot(i, d, slotStart, slotEnd)) continue;
+        const a = Math.max(i.s, slotStart);
+        const b = Math.min(i.e, slotEnd);
+        const width = slotEnd - slotStart;
+        return { start: (a - slotStart) / width, end: (b - slotStart) / width };
+      }
+      return null;
+    }
+    function fmt(min) {
+      const h = Math.floor(min / 60), m = min % 60;
+      return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    }
+    function parseT(s) {
+      const [h, m] = s.split(':').map(Number);
+      return h * 60 + m;
+    }
+    function slotBounds(idx) {
+      const s = CFG.startHour * 60 + idx * CFG.slotMin;
+      return { s, e: s + CFG.slotMin };
+    }
+
+    // ============================================================
+    // Grid building
+    // ============================================================
+    function buildGrid(wrapId, editable) {
+      const wrap = document.getElementById(wrapId);
+      wrap.innerHTML = '';
+      const grid = document.createElement('div');
+      grid.className = 'grid' + (editable ? ' editable' : '');
+      grid.style.gridTemplateColumns = `56px repeat(${CFG.days.length}, minmax(42px, 1fr))`;
+
+      const corner = document.createElement('div');
+      corner.className = 'corner';
+      grid.appendChild(corner);
+      CFG.days.forEach((d, i) => {
+        const h = document.createElement('div');
+        h.className = 'day-header';
+        if (i === 0) h.classList.add('sun');
+        if (i === 6) h.classList.add('sat');
+        h.textContent = d;
+        grid.appendChild(h);
+      });
+
+      for (let s = 0; s < ROWS; s++) {
+        const absMin = CFG.startHour * 60 + s * CFG.slotMin;
+        const label = document.createElement('div');
+        label.className = 'time-label';
+        if (absMin % 60 === 0) label.textContent = fmt(absMin);
+        grid.appendChild(label);
+        for (let d = 0; d < CFG.days.length; d++) {
+          const cell = document.createElement('div');
+          cell.className = 'cell';
+          cell.dataset.d = d;
+          cell.dataset.s = s;
+          if (s % SLOTS_PER_HOUR === SLOTS_PER_HOUR - 1) cell.classList.add('hour-mark');
+          if (d === 0) cell.classList.add('sun');
+          if (d === 6) cell.classList.add('sat');
+          const heat = document.createElement('div'); heat.className = 'heat'; cell.appendChild(heat);
+          const fill = document.createElement('div'); fill.className = 'fill'; cell.appendChild(fill);
+          const cnt = document.createElement('div'); cnt.className = 'count'; cell.appendChild(cnt);
+          grid.appendChild(cell);
+        }
+      }
+      wrap.appendChild(grid);
+      return grid;
+    }
+
+    function paintCellFillFromIntervals(cell, intervals) {
+      const d = +cell.dataset.d, s = +cell.dataset.s;
+      const { s: ss, e: ee } = slotBounds(s);
+      const frac = cellFraction(intervals, d, ss, ee);
+      const fill = cell.querySelector('.fill');
+      if (!frac) {
+        fill.style.display = 'none';
+      } else {
+        fill.style.display = 'block';
+        fill.style.top = (frac.start * 100) + '%';
+        fill.style.bottom = ((1 - frac.end) * 100) + '%';
+      }
+    }
+
+    // ============================================================
+    // Edit grid rendering + interaction
+    // ============================================================
+    let editGrid = null;
+    function renderEditGrid() {
+      if (!editGrid) editGrid = buildGrid('edit-grid-wrap', true);
+      editGrid.querySelectorAll('.cell').forEach(cell => {
+        paintCellFillFromIntervals(cell, state.myIntervals);
+      });
+    }
+
+    let drag = null; // { originalIntervals, intent, d0, s0, d, s, moved }
+
+    function rectBounds(d0, s0, d1, s1) {
+      const dMin = Math.min(d0, d1), dMax = Math.max(d0, d1);
+      const sMin = Math.min(s0, s1), sMax = Math.max(s0, s1);
+      return { dMin, dMax, sMin, sMax };
+    }
+
+    function applyRectPreview() {
+      let ivs = drag.originalIntervals;
+      const { dMin, dMax, sMin, sMax } = rectBounds(drag.d0, drag.s0, drag.d, drag.s);
+      const rStart = CFG.startHour * 60 + sMin * CFG.slotMin;
+      const rEnd = CFG.startHour * 60 + (sMax + 1) * CFG.slotMin;
+      for (let d = dMin; d <= dMax; d++) {
+        ivs = drag.intent === 'add'
+          ? addRange(ivs, d, rStart, rEnd)
+          : removeRange(ivs, d, rStart, rEnd);
+      }
+      state.myIntervals = ivs;
+      renderEditGrid();
+    }
+
+    function onCellPointerDown(e) {
+      const cell = e.target.closest('.cell');
+      if (!cell || !editGrid.contains(cell)) return;
+      if (!state.myName) {
+        flashBanner('이름을 먼저 입력해주세요.');
+        document.getElementById('name-input').focus();
+        return;
+      }
+      e.preventDefault();
+      cell.setPointerCapture(e.pointerId);
+      const d = +cell.dataset.d, s = +cell.dataset.s;
+      const { s: ss, e: ee } = slotBounds(s);
+      const covered = cellOverlaps(state.myIntervals, d, ss, ee);
+      drag = {
+        originalIntervals: state.myIntervals,
+        intent: covered ? 'remove' : 'add',
+        d0: d, s0: s, d, s,
+        moved: false,
+        pointerId: e.pointerId,
+      };
+      applyRectPreview();
+    }
+    function onCellPointerMove(e) {
+      if (!drag) return;
+      const cell = document.elementFromPoint(e.clientX, e.clientY)?.closest('.cell');
+      if (!cell || !editGrid.contains(cell)) return;
+      const d = +cell.dataset.d, s = +cell.dataset.s;
+      if (d === drag.d && s === drag.s) return;
+      drag.d = d; drag.s = s;
+      drag.moved = true;
+      applyRectPreview();
+    }
+    async function onCellPointerUp() {
+      if (!drag) return;
+      drag = null;
+      await persist();
+      renderViewTab(); // aggregate includes me now
+    }
+
+    function attachEditGridEvents() {
+      editGrid.addEventListener('pointerdown', onCellPointerDown);
+      editGrid.addEventListener('pointermove', onCellPointerMove);
+      editGrid.addEventListener('pointerup', onCellPointerUp);
+      editGrid.addEventListener('pointercancel', onCellPointerUp);
+    }
+
+    // ============================================================
+    // Manual input + interval list
+    // ============================================================
+    function renderIntervalsList() {
+      const ul = document.getElementById('intervals-list');
+      ul.innerHTML = '';
+      if (!state.myIntervals.length) {
+        const li = document.createElement('li');
+        li.className = 'empty';
+        li.textContent = '등록된 시간이 없습니다.';
+        ul.appendChild(li);
+        return;
+      }
+      for (const iv of state.myIntervals) {
+        const li = document.createElement('li');
+        const txt = document.createElement('span');
+        txt.textContent = `${CFG.days[iv.d]}  ${fmt(iv.s)} ~ ${fmt(iv.e)}`;
+        const btn = document.createElement('button');
+        btn.className = 'btn small ghost';
+        btn.textContent = '삭제';
+        btn.addEventListener('click', async () => {
+          state.myIntervals = removeRange(state.myIntervals, iv.d, iv.s, iv.e);
           renderEditGrid();
           renderIntervalsList();
-          setSaveStatus('');
-        }
-        if (state.personSel === u.name) state.personSel = '';
-        await loadAll();
-        renderViewTab();
-      } catch (err) {
-        console.error(err);
-        alert('삭제 실패: ' + (err.message || err));
+          await persist();
+          renderViewTab();
+        });
+        li.appendChild(txt); li.appendChild(btn);
+        ul.appendChild(li);
       }
-    });
+    }
 
-    li.appendChild(nameSpan);
-    li.appendChild(hoursSpan);
-    li.appendChild(delBtn);
-    if (state.mode === 'person' && state.personSel === u.name) li.classList.add('active');
-    li.addEventListener('click', () => {
-      state.mode = 'person';
-      state.personSel = u.name;
-      syncViewControls();
-      renderViewTab();
-    });
-    ul.appendChild(li);
-  }
-}
+    function setupManualInput() {
+      const daySel = document.getElementById('m-day');
+      CFG.days.forEach((d, i) => {
+        const o = document.createElement('option');
+        o.value = i; o.textContent = d + '요일';
+        daySel.appendChild(o);
+      });
+      document.getElementById('m-add').addEventListener('click', async () => {
+        if (!state.myName) {
+          flashBanner('이름을 먼저 입력해주세요.');
+          document.getElementById('name-input').focus();
+          return;
+        }
+        const d = +daySel.value;
+        const s = parseT(document.getElementById('m-start').value);
+        const e = parseT(document.getElementById('m-end').value);
+        if (isNaN(s) || isNaN(e) || s >= e) {
+          flashBanner('시작 시간이 종료 시간보다 빨라야 합니다.');
+          return;
+        }
+        state.myIntervals = addRange(state.myIntervals, d, s, e);
+        renderEditGrid();
+        renderIntervalsList();
+        await persist();
+        renderViewTab();
+      });
+      document.getElementById('m-clear').addEventListener('click', async () => {
+        if (!state.myIntervals.length) return;
+        if (!confirm('내 일정을 모두 지울까요?')) return;
+        state.myIntervals = [];
+        renderEditGrid();
+        renderIntervalsList();
+        await persist();
+        renderViewTab();
+      });
+    }
 
-function renderViewMeta() {
-  const el = document.getElementById('view-meta');
-  el.textContent = `등록: ${state.allUsers.length}명`;
-}
+    // ============================================================
+    // Name input + save status
+    // ============================================================
+    let saveTimer = null;
+    let saveInFlight = false;
+    function setSaveStatus(msg, cls = '') {
+      const el = document.getElementById('save-status');
+      el.textContent = msg;
+      el.className = 'save-status ' + cls;
+    }
+    async function persist() {
+      if (!state.myName) return;
+      clearTimeout(saveTimer);
+      setSaveStatus('저장 중…', 'saving');
+      try {
+        await saveMine();
+        setSaveStatus('저장됨 ' + new Date().toLocaleTimeString('ko-KR'), 'saved');
+      } catch (e) {
+        console.error(e);
+        setSaveStatus('저장 실패: ' + (e.message || e), 'error');
+      }
+    }
 
-function renderViewTab() {
-  renderViewGrid();
-  renderPeopleList();
-  renderCellInfo();
-  renderViewMeta();
-  const sel = document.getElementById('view-person');
-  sel.innerHTML = '';
-  for (const u of state.allUsers) {
-    const o = document.createElement('option');
-    o.value = u.name; o.textContent = u.name;
-    sel.appendChild(o);
-  }
-  if (state.mode === 'person' && !state.allUsers.find(u => u.name === state.personSel)) {
-    state.personSel = state.allUsers[0]?.name || '';
-  }
-  sel.value = state.personSel;
-}
+    function setupNameInput() {
+      const input = document.getElementById('name-input');
+      input.value = state.myName;
+      let lastName = state.myName;
+      input.addEventListener('change', async () => {
+        const name = input.value.trim();
+        if (name === lastName) return;
+        lastName = name;
+        try {
+          await switchPerson(name);
+          renderEditGrid();
+          renderIntervalsList();
+          setSaveStatus(name ? '불러옴' : '');
+          // If name is brand new (not in allUsers), its row is created lazily on first edit.
+        } catch (e) {
+          console.error(e);
+          setSaveStatus('불러오기 실패: ' + (e.message || e), 'error');
+        }
+      });
+    }
 
-function syncViewControls() {
-  document.querySelectorAll('#view-mode button').forEach(b => {
-    b.classList.toggle('active', b.dataset.mode === state.mode);
-  });
-  const sel = document.getElementById('view-person');
-  sel.style.display = state.mode === 'person' ? '' : 'none';
-}
+    function flashBanner(msg) {
+      const b = document.getElementById('edit-banner');
+      b.style.display = 'block';
+      b.className = 'banner';
+      b.textContent = msg;
+      clearTimeout(flashBanner._t);
+      flashBanner._t = setTimeout(() => { b.style.display = 'none'; }, 2500);
+    }
 
-function setupViewControls() {
-  document.querySelectorAll('#view-mode button').forEach(b => {
-    b.addEventListener('click', () => {
-      state.mode = b.dataset.mode;
-      if (state.mode === 'person' && !state.personSel) {
+    // ============================================================
+    // View tab rendering
+    // ============================================================
+    let viewGrid = null;
+    function peopleInCell(d, s) {
+      const { s: ss, e: ee } = slotBounds(s);
+      return state.allUsers.filter(u => u.intervals.some(i => intervalOverSlot(i, d, ss, ee)));
+    }
+    function renderViewGrid() {
+      if (!viewGrid) {
+        viewGrid = buildGrid('view-grid-wrap', false);
+        viewGrid.addEventListener('click', onViewCellClick);
+      }
+      const total = state.allUsers.length;
+      const mode = state.mode;
+      const person = mode === 'person' ? state.allUsers.find(u => u.name === state.personSel) : null;
+      viewGrid.querySelectorAll('.cell').forEach(cell => {
+        const d = +cell.dataset.d, s = +cell.dataset.s;
+        const { s: ss, e: ee } = slotBounds(s);
+        const fill = cell.querySelector('.fill');
+        const heat = cell.querySelector('.heat');
+        const cnt = cell.querySelector('.count');
+
+        fill.style.display = 'none';
+        heat.style.opacity = '0';
+        cnt.textContent = '';
+        cell.classList.remove('show-count');
+
+        if (mode === 'all') {
+          const list = peopleInCell(d, s);
+          const n = list.length;
+          if (n > 0 && total > 0) {
+            heat.style.opacity = (0.15 + 0.65 * (n / total)).toFixed(3);
+            if (n >= 2) { cnt.textContent = n; cell.classList.add('show-count'); }
+          }
+        } else if (person) {
+          paintCellFillFromIntervals(cell, person.intervals);
+        }
+
+        const sel = state.selected;
+        cell.classList.toggle('selected', !!sel && sel.d === d && sel.s === s);
+      });
+    }
+    function onViewCellClick(e) {
+      const cell = e.target.closest('.cell');
+      if (!cell) return;
+      const d = +cell.dataset.d, s = +cell.dataset.s;
+      state.selected = { d, s };
+      renderViewGrid();
+      renderCellInfo();
+    }
+    function renderCellInfo() {
+      const box = document.getElementById('cell-info');
+      if (!state.selected) {
+        const msg = state.admin
+          ? '셀을 클릭하면 그 시간에 가능한 사람을 보여줍니다.'
+          : '셀을 클릭하면 그 시간의 가능 인원을 보여줍니다.';
+        box.innerHTML = `<div class="muted">${msg}</div>`;
+        return;
+      }
+      const { d, s } = state.selected;
+      const { s: ss, e: ee } = slotBounds(s);
+      const available = peopleInCell(d, s);
+      const headline = `${CFG.days[d]}요일 ${fmt(ss)} ~ ${fmt(ee)}`;
+      let html = `<div class="title">${headline}</div>`;
+      if (state.admin) {
+        const unavailable = state.allUsers.filter(u => !available.includes(u));
+        if (available.length) {
+          html += `<div><b>가능 (${available.length}명):</b> <span class="names">${available.map(u => escapeHtml(u.name)).join(', ')}</span></div>`;
+        } else {
+          html += `<div class="absent">이 시간에 가능한 사람이 없습니다.</div>`;
+        }
+        if (unavailable.length) {
+          html += `<div class="muted" style="margin-top:4px">불가: ${unavailable.map(u => escapeHtml(u.name)).join(', ')}</div>`;
+        }
+      } else {
+        const total = state.allUsers.length;
+        if (available.length) {
+          html += `<div><b>${available.length}명</b> 가능 (전체 ${total}명 중)</div>`;
+        } else {
+          html += `<div class="absent">이 시간에 가능한 사람이 없습니다.</div>`;
+        }
+      }
+      box.innerHTML = html;
+    }
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
+    function renderPeopleList() {
+      const ul = document.getElementById('people-list');
+      ul.innerHTML = '';
+      if (!state.allUsers.length) {
+        const li = document.createElement('li');
+        li.className = 'muted';
+        li.textContent = '아직 없음';
+        ul.appendChild(li);
+        return;
+      }
+      for (const u of state.allUsers) {
+        const li = document.createElement('li');
+        const hours = u.intervals.reduce((acc, i) => acc + (i.e - i.s), 0) / 60;
+
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'p-name';
+        nameSpan.textContent = u.name;
+        const hoursSpan = document.createElement('span');
+        hoursSpan.className = 'count';
+        hoursSpan.textContent = `${hours.toFixed(1)}h`;
+        const delBtn = document.createElement('button');
+        delBtn.className = 'del-person';
+        delBtn.textContent = '×';
+        delBtn.title = `${u.name} 삭제`;
+        delBtn.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          if (!confirm(`"${u.name}" 의 등록 정보를 삭제할까요? 되돌릴 수 없습니다.`)) return;
+          try {
+            await deleteUser(u.name);
+            if (state.myName === u.name) {
+              state.myName = '';
+              state.myIntervals = [];
+              localStorage.removeItem('schedule:myName');
+              const input = document.getElementById('name-input');
+              if (input) input.value = '';
+              renderEditGrid();
+              renderIntervalsList();
+              setSaveStatus('');
+            }
+            if (state.personSel === u.name) state.personSel = '';
+            await loadAll();
+            renderViewTab();
+          } catch (err) {
+            console.error(err);
+            alert('삭제 실패: ' + (err.message || err));
+          }
+        });
+
+        li.appendChild(nameSpan);
+        li.appendChild(hoursSpan);
+        li.appendChild(delBtn);
+        if (state.mode === 'person' && state.personSel === u.name) li.classList.add('active');
+        li.addEventListener('click', () => {
+          state.mode = 'person';
+          state.personSel = u.name;
+          syncViewControls();
+          renderViewTab();
+        });
+        ul.appendChild(li);
+      }
+    }
+
+    function renderViewMeta() {
+      const el = document.getElementById('view-meta');
+      el.textContent = `등록: ${state.allUsers.length}명`;
+    }
+
+    function renderViewTab() {
+      renderViewGrid();
+      renderPeopleList();
+      renderCellInfo();
+      renderViewMeta();
+      const sel = document.getElementById('view-person');
+      sel.innerHTML = '';
+      for (const u of state.allUsers) {
+        const o = document.createElement('option');
+        o.value = u.name; o.textContent = u.name;
+        sel.appendChild(o);
+      }
+      if (state.mode === 'person' && !state.allUsers.find(u => u.name === state.personSel)) {
         state.personSel = state.allUsers[0]?.name || '';
       }
+      sel.value = state.personSel;
+    }
+
+    function syncViewControls() {
+      document.querySelectorAll('#view-mode button').forEach(b => {
+        b.classList.toggle('active', b.dataset.mode === state.mode);
+      });
+      const sel = document.getElementById('view-person');
+      sel.style.display = (state.admin && state.mode === 'person') ? '' : 'none';
+    }
+
+    function applyAdminMode() {
+      const pane = document.getElementById('pane-view');
+      pane.classList.toggle('admin', state.admin);
+      pane.classList.toggle('guest', !state.admin);
+      const btn = document.getElementById('admin-btn');
+      btn.textContent = state.admin ? '관리자 로그아웃' : '관리자 로그인';
+      btn.classList.toggle('on', state.admin);
+      if (!state.admin && state.mode === 'person') state.mode = 'all';
+    }
+
+    function setupAdminBtn() {
+      document.getElementById('admin-btn').addEventListener('click', () => {
+        if (state.admin) {
+          if (!confirm('관리자 모드에서 로그아웃할까요?')) return;
+          state.admin = false;
+          sessionStorage.removeItem('schedule:admin');
+        } else {
+          const pw = prompt('관리자 비밀번호를 입력하세요:');
+          if (pw === null) return;
+          if (pw !== ADMIN_PASSWORD) {
+            alert('비밀번호가 일치하지 않습니다.');
+            return;
+          }
+          state.admin = true;
+          sessionStorage.setItem('schedule:admin', 'yes');
+        }
+        applyAdminMode();
+        syncViewControls();
+        renderViewTab();
+      });
+    }
+
+    function setupViewControls() {
+      document.querySelectorAll('#view-mode button').forEach(b => {
+        b.addEventListener('click', () => {
+          state.mode = b.dataset.mode;
+          if (state.mode === 'person' && !state.personSel) {
+            state.personSel = state.allUsers[0]?.name || '';
+          }
+          syncViewControls();
+          renderViewTab();
+        });
+      });
+      document.getElementById('view-person').addEventListener('change', (e) => {
+        state.personSel = e.target.value;
+        renderViewTab();
+      });
+    }
+
+    // ============================================================
+    // Tab switching
+    // ============================================================
+    function setupTabs() {
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          const name = tab.dataset.tab;
+          document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t === tab));
+          document.querySelectorAll('.pane').forEach(p => p.classList.toggle('active', p.id === 'pane-' + name));
+          if (name === 'view') renderViewTab();
+        });
+      });
+    }
+
+    // ============================================================
+    // Bootstrap
+    // ============================================================
+    function renderAll() {
+      renderEditGrid();
+      renderIntervalsList();
+      if (document.getElementById('pane-view').classList.contains('active')) {
+        renderViewTab();
+      } else {
+        // keep people-list cache fresh even if tab hidden
+        renderPeopleList();
+        renderViewMeta();
+      }
+    }
+
+    async function main() {
+      setConn(useSupabase ? '실시간 모드' : '로컬 모드 (이 기기만)', useSupabase ? 'ok' : '');
+      setupTabs();
+      setupManualInput();
+      setupNameInput();
+      setupViewControls();
+      setupAdminBtn();
+
+      editGrid = buildGrid('edit-grid-wrap', true);
+      attachEditGridEvents();
+      viewGrid = buildGrid('view-grid-wrap', false);
+      viewGrid.addEventListener('click', onViewCellClick);
+
+      try {
+        await loadAll();
+      } catch (e) {
+        console.error(e);
+        setConn('로드 실패: ' + (e.message || e), 'err');
+      }
+
+      applyAdminMode();
+      renderAll();
       syncViewControls();
-      renderViewTab();
-    });
-  });
-  document.getElementById('view-person').addEventListener('change', (e) => {
-    state.personSel = e.target.value;
-    renderViewTab();
-  });
-}
+      subscribeRealtime();
+    }
 
-// ============================================================
-// Tab switching
-// ============================================================
-function setupTabs() {
-  document.querySelectorAll('.tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-      const name = tab.dataset.tab;
-      document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t === tab));
-      document.querySelectorAll('.pane').forEach(p => p.classList.toggle('active', p.id === 'pane-' + name));
-      if (name === 'view') renderViewTab();
-    });
-  });
-}
-
-// ============================================================
-// Bootstrap
-// ============================================================
-function renderAll() {
-  renderEditGrid();
-  renderIntervalsList();
-  if (document.getElementById('pane-view').classList.contains('active')) {
-    renderViewTab();
-  } else {
-    // keep people-list cache fresh even if tab hidden
-    renderPeopleList();
-    renderViewMeta();
-  }
-}
-
-async function main() {
-  setConn(useSupabase ? '실시간 모드' : '로컬 모드 (이 기기만)', useSupabase ? 'ok' : '');
-  setupTabs();
-  setupManualInput();
-  setupNameInput();
-  setupViewControls();
-
-  editGrid = buildGrid('edit-grid-wrap', true);
-  attachEditGridEvents();
-  viewGrid = buildGrid('view-grid-wrap', false);
-  viewGrid.addEventListener('click', onViewCellClick);
-
-  try {
-    await loadAll();
-  } catch (e) {
-    console.error(e);
-    setConn('로드 실패: ' + (e.message || e), 'err');
-  }
-
-  renderAll();
-  syncViewControls();
-  subscribeRealtime();
-}
-
-main();
-</script>
+    main();
+  </script>
 </body>
+
 </html>
